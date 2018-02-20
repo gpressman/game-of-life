@@ -76,7 +76,7 @@ class Index extends React.Component {
 		for (var i = 0; i<squares.length; i++){ 
 		  squares[i] = new Array(this.state.squaresNumber);
 		  for (var x = 0; x<squares[i].length; x++){ 
-		    Math.random() >= .15 ? squares[i][x] = 'young' : squares[i][x] = 'dead';
+		    Math.random() >= .50 ? squares[i][x] = 'young' : squares[i][x] = 'dead';
 		  } 
 		}
 		this.setState({squares: squares});
@@ -86,16 +86,21 @@ class Index extends React.Component {
 		setInterval(
 			() => {
 				let squares = this.state.squares.slice();
-				for (var i = 0; i<squares.length; i++){
-					for (var x = 0; x<squares[i].length; x++){
-						squares[i][x] = this.updateSquare(squares[i][x], this.checkNeighbors(i, x));
-					}
-				}
+			    for (var i = 0; i < squares.length; i++) {
+			        let thisRow = squares[i].slice();
+			        for (var x = 0; x < thisRow.length; x++) {
+			          thisRow[x] = this.updateSquare(
+			            thisRow[x],
+			            this.checkNeighbors(i, x)
+			          );
+			        }
+			        squares[i] = thisRow;
+			    }
 				this.setState({
 					squares: squares,
 					generation: this.state.generation + 1
 				});				
-			}, 1
+			}, this.convertSpeed()
 		);
 	}
 
