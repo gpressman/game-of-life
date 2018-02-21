@@ -5,7 +5,7 @@ import {TopActions} from './topactions';
 import {BottomActions} from './bottomactions';
 import {Board} from './board';
 
-
+// Need a variable for interval used later
 let startTimer;
 
 class Index extends React.Component {
@@ -22,25 +22,33 @@ class Index extends React.Component {
 		}
 	}
 
+	// To make new young squares on click
 	createLife = (row, square) => {
+		// Grab the squares
 		let squares = this.state.squares.slice();
-		let selectedRow =squares[row].slice();
-		selectedRow[square] = 'young';
-		squares[row] = selectedRow;
-		this.setState({squares: squares});
+		// We only want to create life on dead squares, not change adults to young
+		if (squares[row][square] == 'dead'){
+			// Grab the row
+			let selectedRow =squares[row].slice();
+			// Set the specific square 
+			selectedRow[square] = 'young';
+			// Replace the row
+			squares[row] = selectedRow;
+
+			this.setState({squares: squares});		
+		}
 	}
 
+	// To change the board size
 	changeSize = (element) => {
-		console.log(this.state)
+		// The size board we're changing to
 		const size = element.target.getAttribute('data-value');
+		// Find the rows and cols of the board from the size string
 		const dimensions = this.determineSize(size);
-		let squares = Array(dimensions.rows).fill(Array(dimensions.squares));
-		for (var i = 0; i<squares.length; i++){
-			for (var x = 0; x<squares[i].length; x++){
-				squares[i][x] = 'dead';
-			}
-		}
+		// Create a new board with the dimensions we found and set all the squares to dead
+		const squares = Array(dimensions.rows).fill(Array(dimensions.squares).fill('dead'));
 
+		// Update the state
 		this.setState({
 			size: size,
 			rowsNumber: dimensions.rows,
@@ -48,21 +56,30 @@ class Index extends React.Component {
 			generation: 0,
 			squares: squares
 		});
+
+		// The board is empty, so no need for gnerations to pass
 		this.stopTimer();
 	}
 
+	// Change the speed of the 'game'
 	changeSpeed = (element) => {
+		// Grab the speed from the data attribute and update the state
 		const speed = element.target.getAttribute('data-value');
 		this.setState({speed: speed});
 	}
 
+	// Find out how many living neighbors a square has
 	checkNeighbors(row, col){
+		// Grab the squares from the state
 		let squares = this.state.squares.slice();
+		// Set the neighbors to 0 to start
 		let neighbors = 0;
-		let i, x;
+		// To find the grid around a square we need the row through +1 and -1 and the square through +1 and -1
 		for (let i = -1; i<=1; i++){
 			for (let x = -1; x<=1; x++){
+				// If both counters are 0 we're looking at the original square
 				if (i != 0 || x != 0) {
+					// Checking to make sure the squares exist, then checking to see if it is alive before adding
 					if (squares[row + i] && squares[row + i][col + x] && squares[row + i][col + x] != 'dead'){
 						neighbors ++;
 					}
@@ -73,13 +90,16 @@ class Index extends React.Component {
 	}
 
 	componentDidMount(){
-		startTimer = setInterval(() => {this.nextRound();}, this.convertSpeed());
+		// Start the timer when the page loads
+		startTimer = setInterval(() => {this.nextGen();}, this.convertSpeed());
 	}
 
 	componentDidUpdate(prevProps, prevState) {
+		// If the speed changes we need to stop the timer and start it again at the new speed
 		if(prevState.speed !== this.state.speed) {
 			this.stopTimer();
 			this.startTimer();
+			// Checking to see if the user paused or started game
 		} else if (prevState.running != this.state.running){
 			if (this.state.running){
 				this.startTimer();
@@ -90,16 +110,18 @@ class Index extends React.Component {
 	}
 
 	componentWillMount(){
+		// Setting the initial state of board
+		// Start with an array of the number of rows
 		let squares = new Array(this.state.rowsNumber);
 		for (var i = 0; i<squares.length; i++){ 
-		  squares[i] = new Array(this.state.squaresNumber);
-		  for (var x = 0; x<squares[i].length; x++){ 
-		    Math.random() >= .50 ? squares[i][x] = 'young' : squares[i][x] = 'dead';
-		  } 
+		  // Make every item (row) into an array and fill that array with the number of squares.  Then randomly decide which squares are alive.
+		  squares[i] = new Array(this.state.squaresNumber).fill('null').map(square => square = this.generateRandomLife());;
 		}
 		this.setState({squares: squares});
 	}
 
+
+	// Taking the speed as a string and converting it into how often to run the setInterval
 	convertSpeed(){
 		switch (this.state.speed){
 			case 'fast':
@@ -115,6 +137,7 @@ class Index extends React.Component {
 		}
 	}
 
+	// Taking the size as as string and returning the number of rows and squares
 	determineSize(size){
 		switch(size){
 			case 'small':
@@ -129,17 +152,17 @@ class Index extends React.Component {
 		}
 	}
 
-	nextRound = () => {
+
+	// Moving to the next generation
+	nextGen = () => {
+		// Grab the squares from the state
 		let squares = this.state.squares.slice();
+		// loop through the rows
 	    for (var i = 0; i < squares.length; i++) {
+	    	// grab the row
 	        let thisRow = squares[i].slice();
-	        for (var x = 0; x < thisRow.length; x++) {
-	          thisRow[x] = this.updateSquare(
-	            thisRow[x],
-	            this.checkNeighbors(i, x)
-	          );
-	        }
-	        squares[i] = thisRow;
+	        // Update each square in the row to the next gen, then replace the row with the variable set above
+	        squares[i] = thisRow.map((square, x) => this.updateSquare(square, this.checkNeighbors(i, x)))
 	    }
 		this.setState({
 			squares: squares,
@@ -147,24 +170,41 @@ class Index extends React.Component {
 		});				
 	}
 
-	startTimer = () => {
-		startTimer = setInterval(() => {this.nextRound();}, this.convertSpeed());
+	// Assigns alive or dead randomly for starting state
+	generateRandomLife() {
+		let squareLife;
+		// If the random number is more than .5 set the square to young, otherwise dead
+		Math.random() > .5 ? squareLife = 'young' : squareLife = 'dead';
+		return squareLife;
 	}
 
+	// Start the interval
+	startTimer = () => {
+		startTimer = setInterval(() => {
+			this.nextGen();
+		},this.convertSpeed());
+	}
+
+	// Stop the interval
 	stopTimer(){
 		clearInterval(startTimer);
 	}
 
+
+	// Determine a squares liveliness 
 	updateSquare(square, neighbors){
+		// If it's dead and has 3 neighbors it springs to life, otherwise it stays dead
 		if (square == 'dead'){
 			if (neighbors == 3){
 				return 'young'
 			} else {
 				return 'dead';
 			}
+		// If the square is young or an adult and has 2 or 3 neighbors it remains alive.  Young squares become adults after 1 round, so any living square with 2 or 3 neighbors should be an adult.
 		} else if (square == 'young' || square == 'adult'){
 			if (neighbors == 2 || neighbors == 3){
 				return 'adult'
+			// If a square has anything besides 2 or 3 neighbors it dies off
 			} else {
 				return 'dead'
 			}

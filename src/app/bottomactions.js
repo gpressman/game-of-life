@@ -3,9 +3,9 @@ import ReactDOM from 'react-dom';
 
 export class BottomActions extends React.Component {
 
+	// Function to create the size and speed selectors
 	renderInput(data, clickEvent, text, type){
 		return <input onClick={clickEvent} data-value={data} className={type == data ? 'selected' : ''} type='button' value={text} />
-		console.log(this.props.type)
 	}
 
 	render(){

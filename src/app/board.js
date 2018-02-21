@@ -5,8 +5,11 @@ import {TopActions} from './topactions'
 import {BottomActions} from './bottomactions'
 export class Board extends React.Component {
 
+	// Create the rows
 	createRows(numberOfRows){
+		// Set empty rows array
 		let rows = [];
+		// Create rows based on the number passed in in index
 		for (var i = 0; i<numberOfRows; i++){
 			rows.push(<Row key={i} row={i} board={this.props.board} createLife={this.props.createLife} squares={this.props.squares}/>);
 		}
