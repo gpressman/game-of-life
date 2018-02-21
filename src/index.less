@@ -60,6 +60,11 @@ body {
 									display:inline-block;
 									font-size:18px;
 									margin:0 auto;
+									.generation_number {
+										&.extinct {
+											color:darken(red, 15%);
+										}
+									}
 								}		
 							}
 						}
@@ -113,8 +118,8 @@ body {
 							height:10px;
 						}
 						.square {
-							width:8px;
 							height:8px;
+							width:8px;
 						}
 					}
 					&.medium {
@@ -124,16 +129,16 @@ body {
 							height:8px;
 						}
 						.square {
-							width:6px;
 							height:6px;
+							width:6px;
 						}						
 					}
 					&.large {
 						height:480px;
 						width:600px;
 						.square {
-							width:4px;
 							height:4px;
+							width:4px;
 						}
 						.row {
 							height:6px;

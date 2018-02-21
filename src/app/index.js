@@ -43,31 +43,44 @@ class Index extends React.Component {
 	changeSize = (element) => {
 		// The size board we're changing to
 		const size = element.target.getAttribute('data-value');
-		// Find the rows and cols of the board from the size string
-		const dimensions = this.determineSize(size);
-		// Create a new board with the dimensions we found and set all the squares to dead
-		const squares = Array(dimensions.rows).fill(Array(dimensions.squares).fill('dead'));
+		// Only run if the size is different
+		if (size != this.state.size){
+			// Find the rows and cols of the board from the size string
+			const dimensions = this.determineSize(size);
+			// Create a new board with the dimensions we found and set all the squares to dead
+			const squares = Array(dimensions.rows).fill(Array(dimensions.squares).fill('dead'));
 
-		// Update the state
-		this.setState({
-			size: size,
-			rowsNumber: dimensions.rows,
-			squaresNumber: dimensions.squares,
-			generation: 0,
-			squares: squares
-		});
+			// Update the state
+			this.setState({
+				size: size,
+				rowsNumber: dimensions.rows,
+				squaresNumber: dimensions.squares,
+				generation: 0,
+				squares: squares
+			});
 
-		// The board is empty, so no need for gnerations to pass
-		this.stopTimer();
+			// The board is empty, so no need for gnerations to pass
+			this.stopTimer();
+		}
 	}
 
 	// Change the speed of the 'game'
 	changeSpeed = (element) => {
 		// Grab the speed from the data attribute and update the state
 		const speed = element.target.getAttribute('data-value');
-		this.setState({speed: speed});
+		// Only run if it's a different speed
+		if (speed != this.state.speed){
+			this.setState({speed: speed});
+		}
 	}
 
+
+	checkLiving(){
+		if (document.querySelectorAll('.young, .adult').length == 0){
+			document.querySelector('.generation_number').classList.add('extinct');
+			this.stopTimer();
+		}
+	}
 	// Find out how many living neighbors a square has
 	checkNeighbors(row, col){
 		// Grab the squares from the state
@@ -89,9 +102,24 @@ class Index extends React.Component {
 		return neighbors;
 	}
 
+	clearBoard = () => {
+		// Grab the board
+		let squares = this.state.squares.slice();
+
+		for (var i = 0; i<squares.length; i++){
+			// Make a new array for the row and set all the squares to dead
+			let row = squares[i].fill('dead');
+			// Replace the board row
+			squares[i] = row;
+		}
+
+		this.stopTimer();
+		this.setState({squares: squares, generation: 0});
+	}
+
 	componentDidMount(){
 		// Start the timer when the page loads
-		startTimer = setInterval(() => {this.nextGen();}, this.convertSpeed());
+		this.startTimer();
 	}
 
 	componentDidUpdate(prevProps, prevState) {
@@ -106,7 +134,11 @@ class Index extends React.Component {
 			} else {
 				this.stopTimer();
 			}
-		} 
+		}
+
+		if (prevState.size == this.state.size){
+			this.checkLiving();
+		}
 	}
 
 	componentWillMount(){
@@ -180,6 +212,9 @@ class Index extends React.Component {
 
 	// Start the interval
 	startTimer = () => {
+		if (document.querySelectorAll('.extinct').length > 0){
+			document.querySelector('.extinct').classList.remove('extinct');
+		}
 		startTimer = setInterval(() => {
 			this.nextGen();
 		},this.convertSpeed());
@@ -215,7 +250,7 @@ class Index extends React.Component {
 		return(
 			<div className='container'>
 				<Header />
-				<Board size={this.state.size} speed={this.state.speed} start={this.startTimer} pause={this.stopTimer} board={this.state.squares} createLife={this.createLife} changeSize={this.changeSize} changeSpeed={this.changeSpeed} generation={this.state.generation} rows={this.state.rowsNumber} squares={this.state.squaresNumber}/>
+				<Board size={this.state.size} speed={this.state.speed} start={this.startTimer} pause={this.stopTimer} clear={this.clearBoard} board={this.state.squares} createLife={this.createLife} changeSize={this.changeSize} changeSpeed={this.changeSpeed} generation={this.state.generation} rows={this.state.rowsNumber} squares={this.state.squaresNumber}/>
 			</div>
 		)
 	}
