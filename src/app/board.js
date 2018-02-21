@@ -8,7 +8,7 @@ export class Board extends React.Component {
 	createRows(numberOfRows){
 		let rows = [];
 		for (var i = 0; i<numberOfRows; i++){
-			rows.push(<Row key={i} row={i} board={this.props.board} squares={this.props.squares}/>);
+			rows.push(<Row key={i} row={i} board={this.props.board} createLife={this.props.createLife} squares={this.props.squares}/>);
 		}
 		return rows;
 	}
@@ -17,9 +17,9 @@ export class Board extends React.Component {
 		return (
 			<div className='board_container'>
 				<div className={'board ' + this.props.size}>
-					<TopActions round={this.props.round} generation={this.props.generation}/>
+					<TopActions run={this.props.run} pause={this.props.pause} generation={this.props.generation}/>
 					{this.createRows(this.props.rows)}
-					<BottomActions size={this.props.size} changeSize={this.props.changeSize}/>
+					<BottomActions size={this.props.size} speed={this.props.speed} changeSpeed={this.props.changeSpeed} changeSize={this.props.changeSize}/>
 				</div>
 			</div>
 		)

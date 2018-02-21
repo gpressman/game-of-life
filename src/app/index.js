@@ -5,6 +5,9 @@ import {TopActions} from './topactions';
 import {BottomActions} from './bottomactions';
 import {Board} from './board';
 
+
+let startTimer;
+
 class Index extends React.Component {
 	constructor(props){
 		super(props)
@@ -16,6 +19,40 @@ class Index extends React.Component {
 			speed: 'fast',
 			squares: []
 		}
+	}
+
+	createLife = (row, square) => {
+		let squares = this.state.squares.slice();
+		let selectedRow =squares[row].slice();
+		selectedRow[square] = 'young';
+		squares[row] = selectedRow;
+		this.setState({squares: squares});
+	}
+
+	changeSize = (element) => {
+		console.log(this.state)
+		const size = element.target.getAttribute('data-value');
+		const dimensions = this.determineSize(size);
+		let squares = Array(dimensions.rows).fill(Array(dimensions.squares));
+		for (var i = 0; i<squares.length; i++){
+			for (var x = 0; x<squares[i].length; x++){
+				squares[i][x] = 'dead';
+			}
+		}
+
+		this.setState({
+			size: size,
+			rowsNumber: dimensions.rows,
+			squaresNumber: dimensions.squares,
+			generation: 0,
+			squares: squares
+		});
+		this.stopTimer();
+	}
+
+	changeSpeed = (element) => {
+		const speed = element.target.getAttribute('data-value');
+		this.setState({speed: speed});
 	}
 
 	checkNeighbors(row, col){
@@ -34,26 +71,26 @@ class Index extends React.Component {
 		return neighbors;
 	}
 
-	updateSquare(square, neighbors){
-		if (square == 'dead'){
-			if (neighbors == 3){
-				return 'young'
-			} else {
-				return 'dead';
-			}
-		} else if (square == 'young' || square == 'adult'){
-			if (neighbors == 2 || neighbors == 3){
-				return 'adult'
-			} else {
-				return 'dead'
-			}
-		} 
+	componentDidMount(){
+		startTimer = setInterval(() => {this.nextRound();}, this.convertSpeed());
+	}
 
-		// } else if (square == 'young' || square == 'adult'){
-		// 	return 'adult';
-		// } else if (square == 'dead'){
-		// 	return 'young';
-		// }
+	componentDidUpdate(prevProps, prevState) {
+		if(prevState.speed !== this.state.speed) {
+			this.stopTimer();
+			this.startTimer();
+		}
+	}
+
+	componentWillMount(){
+		let squares = new Array(this.state.rowsNumber);
+		for (var i = 0; i<squares.length; i++){ 
+		  squares[i] = new Array(this.state.squaresNumber);
+		  for (var x = 0; x<squares[i].length; x++){ 
+		    Math.random() >= .50 ? squares[i][x] = 'young' : squares[i][x] = 'dead';
+		  } 
+		}
+		this.setState({squares: squares});
 	}
 
 	convertSpeed(){
@@ -71,65 +108,6 @@ class Index extends React.Component {
 		}
 	}
 
-	componentWillMount(){
-		let squares = new Array(this.state.rowsNumber);
-		for (var i = 0; i<squares.length; i++){ 
-		  squares[i] = new Array(this.state.squaresNumber);
-		  for (var x = 0; x<squares[i].length; x++){ 
-		    Math.random() >= .50 ? squares[i][x] = 'young' : squares[i][x] = 'dead';
-		  } 
-		}
-		this.setState({squares: squares});
-	}
-
-	componentDidMount(){
-		setInterval(
-			() => {
-				let squares = this.state.squares.slice();
-			    for (var i = 0; i < squares.length; i++) {
-			        let thisRow = squares[i].slice();
-			        for (var x = 0; x < thisRow.length; x++) {
-			          thisRow[x] = this.updateSquare(
-			            thisRow[x],
-			            this.checkNeighbors(i, x)
-			          );
-			        }
-			        squares[i] = thisRow;
-			    }
-				this.setState({
-					squares: squares,
-					generation: this.state.generation + 1
-				});				
-			}, this.convertSpeed()
-		);
-	}
-
-	runRound = () => {
-		let squares = this.state.squares.slice();
-		for (var i = 0; i<squares.length; i++){
-			for (var x = 0; x<squares[i].length; x++){
-				squares[i][x] = this.updateSquare(squares[i][x], this.checkNeighbors(i, x));
-			}
-		}
-		this.setState({
-			squares: squares,
-			generation: this.state.generation + 1
-		});				
-	}
-
-
-	changeSize = (element) => {
-		const size = element.target.getAttribute('data-size');
-		const dimensions = this.determineSize(size);
-		this.setState({
-			size: size,
-			rowsNumber: dimensions.rows,
-			squaresNumber: dimensions.squares,
-			squares: Array(dimensions.rows).fill(Array(dimensions.squares))
-		});
-	}
-
-
 	determineSize(size){
 		switch(size){
 			case 'small':
@@ -144,14 +122,57 @@ class Index extends React.Component {
 		}
 	}
 
+	nextRound = () => {
+		let squares = this.state.squares.slice();
+	    for (var i = 0; i < squares.length; i++) {
+	        let thisRow = squares[i].slice();
+	        for (var x = 0; x < thisRow.length; x++) {
+	          thisRow[x] = this.updateSquare(
+	            thisRow[x],
+	            this.checkNeighbors(i, x)
+	          );
+	        }
+	        squares[i] = thisRow;
+	    }
+		this.setState({
+			squares: squares,
+			generation: this.state.generation + 1
+		});				
+	}
+
+	startTimer(){
+		startTimer = setInterval(() => {this.nextRound();}, this.convertSpeed());
+	}
+
+	stopTimer(){
+		clearInterval(startTimer);
+	}
+
+	updateSquare(square, neighbors){
+		if (square == 'dead'){
+			if (neighbors == 3){
+				return 'young'
+			} else {
+				return 'dead';
+			}
+		} else if (square == 'young' || square == 'adult'){
+			if (neighbors == 2 || neighbors == 3){
+				return 'adult'
+			} else {
+				return 'dead'
+			}
+		} 
+	}
+	
 	render(){
 		return(
 			<div className='container'>
 				<Header />
-				<Board size={this.state.size} round={this.runRound} board={this.state.squares} changeSize={this.changeSize} generation={this.state.generation} rows={this.state.rowsNumber} squares={this.state.squaresNumber}/>
+				<Board size={this.state.size} speed={this.state.speed} start={this.startTimer} pause={this.stopTimer} board={this.state.squares} createLife={this.createLife} changeSize={this.changeSize} changeSpeed={this.changeSpeed} generation={this.state.generation} rows={this.state.rowsNumber} squares={this.state.squaresNumber}/>
 			</div>
 		)
 	}
 }
 
 ReactDOM.render(<Index />, document.querySelector('#app'));
+
