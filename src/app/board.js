@@ -17,7 +17,7 @@ export class Board extends React.Component {
 		return (
 			<div className='board_container'>
 				<div className={'board ' + this.props.size}>
-					<TopActions run={this.props.run} pause={this.props.pause} generation={this.props.generation}/>
+					<TopActions start={this.props.start} pause={this.props.pause} generation={this.props.generation}/>
 					{this.createRows(this.props.rows)}
 					<BottomActions size={this.props.size} speed={this.props.speed} changeSpeed={this.props.changeSpeed} changeSize={this.props.changeSize}/>
 				</div>

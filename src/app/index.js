@@ -16,6 +16,7 @@ class Index extends React.Component {
 			size: 'medium',
 			rowsNumber: 50,
 			squaresNumber: 70,
+			running: true,
 			speed: 'fast',
 			squares: []
 		}
@@ -79,7 +80,13 @@ class Index extends React.Component {
 		if(prevState.speed !== this.state.speed) {
 			this.stopTimer();
 			this.startTimer();
-		}
+		} else if (prevState.running != this.state.running){
+			if (this.state.running){
+				this.startTimer();
+			} else {
+				this.stopTimer();
+			}
+		} 
 	}
 
 	componentWillMount(){
@@ -140,7 +147,7 @@ class Index extends React.Component {
 		});				
 	}
 
-	startTimer(){
+	startTimer = () => {
 		startTimer = setInterval(() => {this.nextRound();}, this.convertSpeed());
 	}
 
